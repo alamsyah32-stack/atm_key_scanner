@@ -49,10 +49,13 @@ async function start(){
           busy=true;
           const code=result.getText ? result.getText() : String(result.text||'');
           if(code){
-            status('Barcode terbaca: '+code,'ok');
+            status('✓ Berhasil Scan: '+code,'ok');
             sendToApp(code);
-            // Beri waktu aplikasi utama memproses, lalu lanjut scan.
-            setTimeout(()=>{busy=false;status('Kamera aktif. Arahkan barcode berikutnya.');},1400);
+            // Hentikan kamera dan tutup jendela scanner secara otomatis.
+            // Penutupan dilakukan dari halaman scanner sendiri agar tetap berjalan
+            // walaupun pesan dari aplikasi utama terlambat diproses.
+            stop();
+            setTimeout(()=>{ try { window.close(); } catch(e) {} },250);
           }else busy=false;
         }
       }
