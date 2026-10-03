@@ -25,16 +25,15 @@ small{display:block;color:#94a3b8;margin-top:10px;line-height:1.5}
 <small>Scanner menggunakan ZXing dan berjalan pada HTTPS GitHub Pages.</small>
 </div>
 <script>
-const APP_ORIGIN='https://alamsyah32-stack.github.io';
 let reader=null, controls=null, busy=false;
 const video=document.getElementById('video');
 const statusEl=document.getElementById('status');
 function status(msg,cls=''){statusEl.className='status '+cls;statusEl.textContent=msg;}
 function sendToApp(code){
   if(!window.opener || window.opener.closed){status('Aplikasi utama tidak ditemukan. Buka scanner dari tombol Buka Kamera di aplikasi.','err');return;}
-  // Penting: targetOrigin adalah origin halaman yang membuka scanner.
-  // Origin ini sengaja sama dengan scanner host karena Apps Script menerima pesan
-  // melalui window.postMessage dari popup yang berasal dari GitHub Pages.
+  // Origin aplikasi utama adalah Apps Script dan berbeda dari origin GitHub Pages,
+  // jadi pesan dikirim ke opener dengan targetOrigin '*'. Aplikasi utama tetap
+  // memvalidasi event.origin agar hanya scanner GitHub Pages yang diterima.
   window.opener.postMessage({type:'ATM_BARCODE_SCANNED',code:String(code).trim()},'*');
 }
 async function start(){
@@ -72,7 +71,7 @@ function stop(){
   status('Scanner ditutup.');
 }
 window.addEventListener('message',e=>{
-  if(e.origin!==APP_ORIGIN) return;
+  if(e.source !== window.opener) return;
   if(e.data && e.data.type==='STOP_ATM_SCANNER') stop();
 });
 document.getElementById('closeBtn').onclick=()=>{stop();window.close();};
